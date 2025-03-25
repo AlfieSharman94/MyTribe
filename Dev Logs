@@ -1,0 +1,151 @@
+Alfies-MacBook-Pro:~ OnTrackRetail$ env /usr/bin/arch -arm64 /bin/bash --login
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+Alfies-MacBook-Pro:~ OnTrackRetail$ cd MyTribeV1
+Alfies-MacBook-Pro:MyTribeV1 OnTrackRetail$ pod deintegrate
+[!] A valid Xcode project file is required.
+
+Usage:
+
+    $ pod deintegrate [XCODE_PROJECT]
+
+      Deintegrate your project from CocoaPods. Removing all traces of
+      CocoaPods from your Xcode project.
+
+      If no xcodeproj is specified, then a search for an Xcode project
+      will be made in the current directory.
+
+Options:
+
+    --project-directory=/project/dir/   The path to the root of the
+                                        project directory
+    --allow-root                        Allows CocoaPods to run as root
+    --silent                            Show nothing
+    --verbose                           Show more debugging information
+    --no-ansi                           Show output without ANSI codes
+    --help                              Show help banner of specified
+                                        command
+Alfies-MacBook-Pro:MyTribeV1 OnTrackRetail$ pod install
+[!] No `Podfile' found in the project directory.
+Alfies-MacBook-Pro:MyTribeV1 OnTrackRetail$ cd ios
+Alfies-MacBook-Pro:ios OnTrackRetail$ pod deintegrate
+Deintegrating `MyTribe.xcodeproj`
+Removing `Pods` directory.
+
+Project has been deintegrated. No traces of CocoaPods left in project.
+Note: The workspace referencing the Pods project still remains.
+Alfies-MacBook-Pro:ios OnTrackRetail$ pod install
+(node:98482) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Adding a custom script phase for Pod RNFBApp: [RNFB] Core Configuration
+Auto-linking React Native modules for target `MyTribe`: RNCAsyncStorage, RNCPicker, RNCPushNotificationIOS, RNDateTimePicker, RNFBApp, RNFBAuth, RNFBFirestore, RNGestureHandler, RNNotifee, RNScreens, RNVectorIcons, and react-native-safe-area-context
+Framework build type is static library
+[Codegen] Generating ./build/generated/ios/React-Codegen.podspec.json
+[Codegen] generating an empty RCTThirdPartyFabricComponentsProvider
+Analyzing dependencies
+Fetching podspec for `DoubleConversion` from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`
+[Codegen] Found FBReactNativeSpec
+Fetching podspec for `RCT-Folly` from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`
+[Codegen] Found rncore
+Fetching podspec for `boost` from `../node_modules/react-native/third-party-podspecs/boost.podspec`
+Fetching podspec for `glog` from `../node_modules/react-native/third-party-podspecs/glog.podspec`
+Downloading dependencies
+Installing BoringSSL-GRPC (0.0.36)
+Installing DoubleConversion (1.1.6)
+Installing FBLazyVector (0.73.11)
+Installing FBReactNativeSpec (0.73.11)
+Installing Firebase (11.8.0)
+Installing FirebaseAppCheckInterop (11.10.0)
+Installing FirebaseAuth (11.8.1)
+Installing FirebaseAuthInterop (11.10.0)
+Installing FirebaseCore (11.8.1)
+Installing FirebaseCoreExtension (11.8.0)
+Installing FirebaseCoreInternal (11.8.0)
+Installing FirebaseFirestore (11.8.0)
+Installing FirebaseFirestoreInternal (11.8.0)
+Installing FirebaseSharedSwift (11.10.0)
+Installing GTMSessionFetcher (4.4.0)
+Installing GoogleUtilities (8.0.2)
+Installing RCT-Folly (2022.05.16.00)
+Installing RCTRequired (0.73.11)
+Installing RCTTypeSafety (0.73.11)
+Installing RNCAsyncStorage (1.22.0)
+Installing RNCPicker (2.6.1)
+Installing RNCPushNotificationIOS (1.11.0)
+Installing RNDateTimePicker (8.3.0)
+Installing RNFBApp (21.12.0)
+Installing RNFBAuth (21.12.0)
+Installing RNFBFirestore (21.12.0)
+Installing RNGestureHandler (2.15.0)
+Installing RNNotifee (9.1.8)
+Installing RNScreens (3.29.0)
+Installing RNVectorIcons (10.2.0)
+Installing React (0.73.11)
+Installing React-Codegen (0.73.11)
+Installing React-Core (0.73.11)
+Installing React-CoreModules (0.73.11)
+Installing React-Fabric (0.73.11)
+Installing React-FabricImage (0.73.11)
+Installing React-ImageManager (0.73.11)
+Installing React-Mapbuffer (0.73.11)
+Installing React-NativeModulesApple (0.73.11)
+Installing React-RCTActionSheet (0.73.11)
+Installing React-RCTAnimation (0.73.11)
+Installing React-RCTAppDelegate (0.73.11)
+Installing React-RCTBlob (0.73.11)
+Installing React-RCTFabric (0.73.11)
+Installing React-RCTImage (0.73.11)
+Installing React-RCTLinking (0.73.11)
+Installing React-RCTNetwork (0.73.11)
+Installing React-RCTSettings (0.73.11)
+Installing React-RCTText (0.73.11)
+Installing React-RCTVibration (0.73.11)
+Installing React-callinvoker (0.73.11)
+Installing React-cxxreact (0.73.11)
+Installing React-debug (0.73.11)
+Installing React-graphics (0.73.11)
+Installing React-jsc (0.73.11)
+Installing React-jserrorhandler (0.73.11)
+Installing React-jsi (0.73.11)
+Installing React-jsiexecutor (0.73.11)
+Installing React-jsinspector (0.73.11)
+Installing React-logger (0.73.11)
+Installing React-nativeconfig (0.73.11)
+Installing React-perflogger (0.73.11)
+Installing React-rendererdebug (0.73.11)
+Installing React-rncore (0.73.11)
+Installing React-runtimeexecutor (0.73.11)
+Installing React-runtimescheduler (0.73.11)
+Installing React-utils (0.73.11)
+Installing ReactCommon (0.73.11)
+Installing RecaptchaInterop (100.0.0)
+Installing SocketRocket (0.6.1)
+Installing Yoga (1.14.0)
+Installing abseil (1.20240116.2)
+Installing boost (1.83.0)
+Installing fmt (6.2.1)
+Installing gRPC-C++ (1.65.5)
+Installing gRPC-Core (1.65.5)
+Installing glog (0.3.5)
+Installing leveldb-library (1.22.6)
+Installing nanopb (3.30910.0)
+Installing react-native-safe-area-context (4.9.0)
+Generating Pods project
+Setting USE_HERMES build settings
+Setting REACT_NATIVE build settings
+[Privacy Manifest Aggregation] Appending aggregated reasons to existing PrivacyInfo.xcprivacy file.
+[Privacy Manifest Aggregation] Reading .xcprivacy files to aggregate all used Required Reason APIs.
+Setting CLANG_CXX_LANGUAGE_STANDARD to c++20 on /Users/OnTrackRetail/MyTribeV1/ios/MyTribe.xcodeproj
+Pod install took 24 [s] to run
+Integrating client project
+Pod installation complete! There are 61 dependencies from the Podfile and 80 total pods installed.
+
+[!] Do not use "pod install" from inside Rosetta2 (x86_64 emulation on arm64).
+
+[!]  - Emulated x86_64 is slower than native arm64
+
+[!]  - May result in mixed architectures in rubygems (eg: ffi_c.bundle files may be x86_64 with an arm64 interpreter)
+
+[!] Run "env /usr/bin/arch -arm64 /bin/bash --login" then try again.
