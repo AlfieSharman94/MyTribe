@@ -42,59 +42,65 @@ console.log('notification.ts loaded');
 
 // Centralized function to store notifications with mutex protection
 export const storeNotificationSafely = async (notification: StoredNotificationWithAction) => {
+  console.log('🔒 Attempting to store notification:', notification);
   return await storeMutex.runExclusive(async () => {
-    console.log('🔒 Mutex acquired - Reading current notifications');
-    
-    // 1. Read the existing array
-    const storedNotifications = await AsyncStorage.getItem('notifications');
-    const currentNotifications = storedNotifications ? JSON.parse(storedNotifications) : [];
-    
-    console.log(`📊 Found ${currentNotifications.length} existing notifications`);
-    
-    // 2. Check for duplicates by ID
-    const isDuplicate = currentNotifications.some((n: StoredNotificationWithAction) => n.id === notification.id);
-    if (isDuplicate) {
-      console.log(`⚠️ Duplicate notification detected with ID ${notification.id} - skipping`);
-      return currentNotifications;
-    }
-    
-    // 3. Append the new notification
-    const updatedNotifications = [...currentNotifications, notification];
-    
-    console.log(`📈 Will store ${updatedNotifications.length} notifications (added 1)`);
-    
-    // 4. Write back
-    await AsyncStorage.setItem('notifications', JSON.stringify(updatedNotifications));
-    
-    console.log('🔓 Mutex released - Notifications stored successfully');
-    
-    // 5. Update badge count
-    const now = new Date();
-    const dueNotifications = updatedNotifications.filter((n: StoredNotification) => 
-      n.actioned === false && 
-      new Date(n.date) <= now
-    );
-    const unactionedCount = dueNotifications.length;
+    try {
+      console.log('🔒 Mutex acquired - Reading current notifications');
+      
+      // 1. Read the existing array
+      const storedNotifications = await AsyncStorage.getItem('notifications');
+      console.log('📦 Raw stored notifications:', storedNotifications);
+      
+      const currentNotifications = storedNotifications ? JSON.parse(storedNotifications) : [];
+      console.log(`📊 Found ${currentNotifications.length} existing notifications`);
+      
+      // 2. Check for duplicates by ID
+      const isDuplicate = currentNotifications.some((n: StoredNotificationWithAction) => n.id === notification.id);
+      if (isDuplicate) {
+        console.log(`⚠️ Duplicate notification detected with ID ${notification.id} - skipping`);
+        return currentNotifications;
+      }
+      
+      // 3. Append the new notification
+      const updatedNotifications = [...currentNotifications, notification];
+      console.log(`📈 Will store ${updatedNotifications.length} notifications (added 1)`);
+      
+      // 4. Write back
+      await AsyncStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+      console.log('✅ Successfully stored notifications:', JSON.stringify(updatedNotifications));
+      
+      console.log('🔓 Mutex released - Notifications stored successfully');
+      
+      // 5. Update badge count
+      const now = new Date();
+      const dueNotifications = updatedNotifications.filter((n: StoredNotification) => 
+        n.actioned === false && 
+        new Date(n.date) <= now
+      );
+      const unactionedCount = dueNotifications.length;
 
-    if (Platform.OS === 'ios') {
-      PushNotificationIOS.setApplicationIconBadgeNumber(unactionedCount);
+      if (Platform.OS === 'ios') {
+        PushNotificationIOS.setApplicationIconBadgeNumber(unactionedCount);
+      }
+      PushNotification.setApplicationIconBadgeNumber(unactionedCount);
+      
+      console.log('Badge count updated to:', unactionedCount, '(only counting due notifications)');
+      
+      // 6. Emit event to refresh UI AFTER everything is complete
+      setTimeout(() => {
+        console.log('🔄 Emitting forceRefreshNotifications after storage completion');
+        DeviceEventEmitter.emit('forceRefreshNotifications', {});
+      }, 300);
+      
+      return updatedNotifications;
+    } catch (error) {
+      console.error('❌ Error in storeNotificationSafely:', error);
+      throw error;
     }
-    PushNotification.setApplicationIconBadgeNumber(unactionedCount);
-    
-    console.log('Badge count updated to:', unactionedCount, '(only counting due notifications)');
-    
-    // 6. Emit event to refresh UI AFTER everything is complete
-    // Add a small delay to ensure AsyncStorage write is fully committed
-    setTimeout(() => {
-      console.log('🔄 Emitting forceRefreshNotifications after storage completion');
-      DeviceEventEmitter.emit('forceRefreshNotifications', {});
-    }, 300);
-    
-    return updatedNotifications;
   });
 };
 
-// Update generateNotification to use the mutex-protected function
+// Update generateNotification to ensure storeNotificationSafely is called
 export const generateNotification = async (contact: Contact): Promise<StoredNotification> => {
   console.log('🎯 Generating notification for:', contact.name);
   
@@ -104,22 +110,43 @@ export const generateNotification = async (contact: Contact): Promise<StoredNoti
   const nameHash = contact.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const uniqueId = timestamp + randomPart + nameHash;
   
+  // Get the next reminder date
+  const nextReminderDate = await calculateNextReminder(contact.frequency);
+  
+  // Create the notification object
   const notification: StoredNotification = {
     id: uniqueId,
     name: contact.name,
-    date: new Date().toISOString(),
+    date: nextReminderDate.toISOString(),
     frequency: contact.frequency,
     lastContacted: contact.history?.[0]?.date || null,
     actioned: false,
     paused: false
   };
 
-  console.log('📝 Created notification object with unique ID:', notification);
+  console.log('📝 Created notification object:', notification);
 
-  // Get the next reminder date
-  const nextReminderDate = await calculateNextReminder(contact.frequency);
-  
-  // Schedule the notification for the future
+  // 1. Store in AsyncStorage first
+  try {
+    console.log('💾 Storing notification in AsyncStorage...');
+    const notificationsJson = await AsyncStorage.getItem('notifications');
+    const existingNotifications = notificationsJson ? JSON.parse(notificationsJson) : [];
+    
+    // Check for duplicates
+    const isDuplicate = existingNotifications.some((n: StoredNotification) => n.id === notification.id);
+    if (!isDuplicate) {
+      const updatedNotifications = [...existingNotifications, notification];
+      await AsyncStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+      console.log('✅ Notification stored in AsyncStorage');
+    } else {
+      console.log('⚠️ Duplicate notification detected, skipping storage');
+    }
+  } catch (error) {
+    console.error('❌ Error storing notification in AsyncStorage:', error);
+  }
+
+  // 2. Schedule the push notification
+  console.log('🔔 Scheduling push notification for:', nextReminderDate);
   PushNotification.localNotificationSchedule({
     channelId: 'tribe-reminders',
     title: 'Time to Connect! 👋',
@@ -137,21 +164,22 @@ export const generateNotification = async (contact: Contact): Promise<StoredNoti
     vibrate: true,
     vibration: 300,
     invokeApp: true,
-    date: nextReminderDate, // Schedule for the next reminder date
+    date: nextReminderDate,
     allowWhileIdle: true,
     repeatType: undefined,
-    userInfo: { contactId: contact.id } // Add contact ID to userInfo
+    userInfo: { 
+      contactId: contact.id,
+      notificationId: uniqueId
+    }
   });
+  console.log('✅ Push notification scheduled');
 
-  // Store the notification using the mutex-protected function
-  const fullNotification = {
-    ...notification,
-    actioned: false,
-    paused: false
-  };
-  
-  await storeNotificationSafely(fullNotification);
-  
+  // 3. Emit event to refresh UI
+  setTimeout(() => {
+    console.log('🔄 Emitting forceRefreshNotifications');
+    DeviceEventEmitter.emit('forceRefreshNotifications', {});
+  }, 300);
+
   return notification;
 };
 
@@ -535,7 +563,7 @@ export const scheduleNextNotification = async (contact: Contact) => {
   const notificationEntry = {
     id: newId,
     name: contact.name,
-    date: nextReminderDate.toISOString(), // Use the calculated next date, not current time
+    date: nextReminderDate.toISOString(), // Store the future reminder date
     frequency: contact.frequency,
     lastContacted: contact.lastContacted || null,
     actioned: false,
@@ -652,4 +680,4 @@ export const debugStoredNotifications = async () => {
   } catch (e) {
     console.error('Error in debugStoredNotifications:', e);
   }
-}; 
+};

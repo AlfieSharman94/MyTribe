@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 registerTranslation('en-GB', enGB);
 
 // Add this near the top of the file, after imports
-const SHOW_DEBUG_BUTTON = false; // Set to false to hide the button
+const SHOW_DEBUG_BUTTON = true; // Set to false to hide the button
 
 type Props = StackScreenProps<RootStackParamList, 'Settings'>;
 
