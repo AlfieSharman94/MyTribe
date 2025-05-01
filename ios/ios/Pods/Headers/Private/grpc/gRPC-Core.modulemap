@@ -1,1 +1,0 @@
-module gRPC_Core { umbrella header "gRPC-Core-umbrella.h" export * module * { export * } }

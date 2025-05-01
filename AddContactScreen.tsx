@@ -11,6 +11,7 @@ import type { MyTribeStackParamList } from './types/navigation';
 import { FrequencyOption } from './types/frequency';
 import { calculateNextReminder, scheduleLocalNotification } from './notification';
 import { RadioButton } from 'react-native-paper';
+import { generateNotification } from './notification';
 const { Android: RadioButtonAndroid } = RadioButton;
 
 type Props = StackScreenProps<MyTribeStackParamList, 'AddContact'>;
@@ -87,8 +88,11 @@ const AddContactScreen = ({ navigation }: Props): JSX.Element => {
         frequency: getFrequencyId(),
         nextReminder: nextReminder.toLocaleString()
       });
-      await scheduleLocalNotification(newContact);
-      console.log('🔔 Initial reminder scheduled for new contact:', contactName);
+
+      // Generate and store the notification
+      await generateNotification(newContact);
+      console.log('🔔 Initial reminder scheduled and stored for new contact:', contactName);
+      
       navigation.navigate('MyTribeMain');
     } catch (e) {
       Alert.alert('Error', 'Failed to save the contact');

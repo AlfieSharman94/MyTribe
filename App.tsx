@@ -38,7 +38,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { scheduleNextNotification } from './notification';
 import type { Contact } from './types/frequency';
 import StorageDebugScreen from './StorageDebugScreen';
-import firebase from '@react-native-firebase/app';
+import LoginScreen from './LoginScreen';
 
 LogBox.ignoreLogs(['Sending `onAnimatedValueUpdate` with no listeners registered']);
 
@@ -595,14 +595,6 @@ const AppContent = () => {
     };
   }, []);
 
-  useEffect(() => {
-    // Check if Firebase is initialized
-    if (firebase.apps.length === 0) {
-      console.log('Firebase should be initialized by native code');
-    }
-    console.log('Firebase Apps:', firebase.apps.length);
-  }, []);
-
   return (
     <PaperProvider theme={currentTheme}>
       <GestureHandlerRootView style={{flex: 1}}>
@@ -625,7 +617,7 @@ const AppContent = () => {
                 backgroundColor: currentTheme.colors.surface,
               },
               headerTitleStyle: {
-                fontSize: 18,  // Increased from 14
+                fontSize: 18,
               },
               headerTintColor: currentTheme.colors.onSurface,
               cardStyle: {
@@ -638,7 +630,7 @@ const AppContent = () => {
               component={TabNavigator}
               options={{ 
                 headerShown: false,
-                title: 'Home',  // This changes what's displayed
+                title: 'Home',
               }}
             />
             <Stack.Screen
@@ -648,7 +640,7 @@ const AppContent = () => {
                 headerTitle: 'Settings',
                 headerStyle: {
                   backgroundColor: currentTheme.colors.surface,
-                  height: 112, // Match the height of other headers
+                  height: 112,
                 },
                 headerTitleStyle: {
                   fontSize: 18,

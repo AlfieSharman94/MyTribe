@@ -2,6 +2,8 @@ export type RootStackParamList = {
   MainTabs: undefined;
   Settings: undefined;
   StorageDebug: undefined;
+  Login: undefined;
+  FirebaseTest: undefined;
 };
 
 export type TabParamList = {

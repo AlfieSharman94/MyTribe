@@ -16,6 +16,7 @@ import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import PushNotification from 'react-native-push-notification';
 import { StoredNotification } from './notification';
 import type { Contact } from './types/contact';
+import PromotionMessage from './PromotionMessage';
 
 type Props = BottomTabScreenProps<TabParamList, 'Home'>;
 
@@ -28,6 +29,7 @@ const HomeScreen = ({ navigation }: Props): JSX.Element => {
   const itemsPerPage = 5;
   const [contactHistories, setContactHistories] = useState<{ [key: string]: any }>({});
   const isFocused = useIsFocused();
+  const [showPromotion, setShowPromotion] = useState(true);
 
   const paginatedNotifications = useMemo(() => {
     const sortedNotifications = [...notifications].sort((a, b) => 
@@ -943,6 +945,9 @@ const HomeScreen = ({ navigation }: Props): JSX.Element => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.colors.surface }]}>
+      {showPromotion && (
+        <PromotionMessage onDismiss={() => setShowPromotion(false)} />
+      )}
       {notifications.length > 0 ? (
         <View style={styles.contentContainer}>
           <FlatList

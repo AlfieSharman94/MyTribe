@@ -371,22 +371,57 @@ const newNotification = {
   actioned: false,
   paused: false
 };
+
+// Store in AsyncStorage
+const notificationsJson = await AsyncStorage.getItem('notifications');
+const existingNotifications = notificationsJson ? JSON.parse(notificationsJson) : [];
+const updatedNotifications = [...existingNotifications, newNotification];
+await AsyncStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+
+// Schedule the push notification
+PushNotification.localNotificationSchedule({
+  channelId: 'tribe-reminders',
+  title: 'Time to Connect! 👋',
+  message: `It's time to reach out to ${contact.name}`,
+  date: nextReminderDate,
+  allowWhileIdle: true,
+  importance: 'high',
+  priority: 'high',
+  userInfo: { 
+    contactId: contact.id,
+    notificationId: newNotification.id
+  }
+});
 ```
 
 ### 2. Storage in AsyncStorage
 
-All notifications are stored in AsyncStorage under the 'notifications' key:
+All notifications are stored in AsyncStorage under the 'notifications' key. The storage process should:
+
+1. Read existing notifications
+2. Check for duplicates
+3. Append the new notification
+4. Save back to AsyncStorage
+5. Schedule the push notification
+6. Emit an event to refresh the UI
 
 ```typescript
 // Get existing notifications
 const notificationsJson = await AsyncStorage.getItem('notifications');
 const existingNotifications = notificationsJson ? JSON.parse(notificationsJson) : [];
 
-// Add the new notification
-const updatedNotifications = [...existingNotifications, newNotification];
+// Check for duplicates
+const isDuplicate = existingNotifications.some(n => n.id === newNotification.id);
+if (!isDuplicate) {
+  const updatedNotifications = [...existingNotifications, newNotification];
+  await AsyncStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+}
 
-// Save all notifications (including future ones)
-await AsyncStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+// Schedule push notification
+PushNotification.localNotificationSchedule({...});
+
+// Emit event to refresh UI
+DeviceEventEmitter.emit('forceRefreshNotifications', {});
 ```
 
 ### 3. UI Display Filtering
@@ -399,7 +434,8 @@ When displaying notifications on the home screen, we filter to show only:
 // Filter for UI display only
 const now = new Date();
 const dueNotifications = allNotifications.filter(n => 
-  n.actioned === false && new Date(n.date) <= now
+  n.actioned === false && 
+  new Date(n.date) <= now
 );
 setNotifications(dueNotifications);
 ```
@@ -418,14 +454,26 @@ latestNotifications = latestNotifications.map(n =>
   n.id === id ? { ...n, actioned: true } : n
 );
 
-// Save to AsyncStorage (preserving future notifications)
-await AsyncStorage.setItem('notifications', JSON.stringify(latestNotifications));
+// Create new notification with future date
+const nextReminderDate = await calculateNextReminder(notification.frequency);
+const newNotification = {
+  id: Date.now() + Math.floor(Math.random() * 10000),
+  name: notification.name,
+  date: nextReminderDate.toISOString(),
+  frequency: notification.frequency,
+  lastContacted: contact.lastContacted || null,
+  actioned: false,
+  paused: false
+};
+
+// Save both notifications
+await AsyncStorage.setItem('notifications', JSON.stringify([...latestNotifications, newNotification]));
 ```
 
 ### 5. Important Implementation Note
 
 The system maintains a separation between:
-- What's stored (ALL notifications)
+- What's stored (ALL notifications, including future ones)
 - What's displayed (only unactioned, due notifications)
 
 This ensures future notifications remain in storage until they become due.

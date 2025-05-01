@@ -320,13 +320,27 @@ const ContactDetailScreen = ({ route, navigation }: Props): JSX.Element => {
       setShowPauseModal(false);
 
       if (shouldPause) {
-        // Clear existing notifications for this contact - Fix trim error
+        // Cancel any scheduled OS notifications for this contact
+        PushNotification.cancelLocalNotification(String(contact.id));
+        console.log(`🔕 Cancelled all scheduled notifications for contact ID: ${contact.id}`);
+
+        // Clear existing notifications for this contact from AsyncStorage
         const notificationsJson = await AsyncStorage.getItem('notifications');
         let notifications = notificationsJson ? JSON.parse(notificationsJson) : [];
-        notifications = notifications.filter((n: StoredNotification) => n.name && contact.name && n.name === contact.name);
-        await AsyncStorage.setItem('notifications', JSON.stringify(notifications));
         
+        // Remove both pending and scheduled notifications for this contact
+        notifications = notifications.filter((n: StoredNotification) => 
+          n.name && contact.name && n.name.trim() !== contact.name.trim()
+        );
+        
+        await AsyncStorage.setItem('notifications', JSON.stringify(notifications));
+        console.log(`🧹 Removed all notifications for ${contact.name}`);
+        
+        // Update badge count
         await updateNotificationBadge();
+        
+        // Emit event to refresh notifications
+        DeviceEventEmitter.emit('forceRefreshNotifications');
       }
     } catch (e) {
       console.error('Error updating contact pause state:', e);
