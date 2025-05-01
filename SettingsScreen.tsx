@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Platform, Linking } from 'react-native';
+import { View, StyleSheet, Platform, Linking, Alert, Text } from 'react-native';
 import { List, Switch, Surface, Button } from 'react-native-paper';
 import { TimePickerModal } from 'react-native-paper-dates';
 import { useTheme } from './src/ThemeContext';
@@ -11,6 +11,7 @@ import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { enGB, registerTranslation } from 'react-native-paper-dates';
 import { useNavigation } from '@react-navigation/native';
+import remoteConfig from '@react-native-firebase/remote-config';
 
 // Register the locale at the top level, after imports
 registerTranslation('en-GB', enGB);
@@ -34,10 +35,12 @@ const SettingsScreen = ({ navigation }: Props): JSX.Element => {
   const [endTime, setEndTime] = useState('19:00');
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     checkNotificationPermission();
     loadTimeSettings();
+    initializeRemoteConfig();
   }, []);
 
   const checkNotificationPermission = async () => {
@@ -94,6 +97,49 @@ const SettingsScreen = ({ navigation }: Props): JSX.Element => {
       // For Android, we can open the app notification settings directly
       Linking.openSettings();
     }
+  };
+
+  const initializeRemoteConfig = async () => {
+    try {
+      // Set minimum fetch interval to 0 for testing
+      await remoteConfig().setConfigSettings({
+        minimumFetchIntervalMillis: 0,
+      });
+
+      // Fetch and activate
+      await remoteConfig().fetchAndActivate();
+      
+      // Get debug button visibility
+      const showDebugButton = remoteConfig().getValue('show_debug_button').asBoolean();
+      setShowDebug(showDebugButton);
+    } catch (error) {
+      console.error('Remote Config error:', error);
+    }
+  };
+
+  const handleClearStorage = async () => {
+    Alert.alert(
+      'Clear Storage',
+      'Are you sure you want to clear all app data? This cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Clear',
+          onPress: async () => {
+            try {
+              await AsyncStorage.clear();
+              Alert.alert('Success', 'All app data has been cleared.');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear storage.');
+            }
+          },
+          style: 'destructive',
+        },
+      ],
+    );
   };
 
   return (
@@ -168,14 +214,20 @@ const SettingsScreen = ({ navigation }: Props): JSX.Element => {
             </Button>
           </View>
           
-          {/* Conditionally render the Debug Storage button */}
-          {SHOW_DEBUG_BUTTON && (
-            <Button 
-              mode="outlined"
-              onPress={() => navigation.navigate('StorageDebug')}
-            >
-              Debug Storage
-            </Button>
+          {showDebug && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: currentTheme.colors.onSurface }]}>
+                Debug
+              </Text>
+              <Button
+                mode="outlined"
+                onPress={handleClearStorage}
+                style={styles.button}
+                textColor={currentTheme.colors.error}
+              >
+                Clear storage
+              </Button>
+            </View>
           )}
         </Surface>
       </View>
@@ -225,6 +277,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 8,
+  },
+  section: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  button: {
+    marginTop: 16,
   },
 });
 
